@@ -6,7 +6,7 @@ Attribution-NonCommercial-ShareAlike 4.0 International
 
 Unless specified otherwise, all assets in this repo are covered by the CC BY-SA 4.0 License.
 
-This is a human-readable summary of (and not a substitute for) the license (below this summary).
+This is a human-readable summary of (and not a substitute for) the [full license](LICENSE).
 
 You are free to:
 * Share — copy and redistribute the material in any medium or format
