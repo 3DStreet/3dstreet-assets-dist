@@ -1,5 +1,7 @@
 # 3dstreet-assets-dist
-Distribution repo for 3DStreet assets for use by first and third party clients
+Distribution repo for 3DStreet assets for use by first and third-party clients.
+
+The entirety of this repo is available on this subdomain of 3dstreet.app: https://assets.3dstreet.app/
 
 # License CC BY-SA 4.0
 Attribution-NonCommercial-ShareAlike 4.0 International
