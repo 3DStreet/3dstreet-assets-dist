@@ -20,17 +20,7 @@ const argv = yargs(hideBin(process.argv))
         description: 'Input directory path',
         type: 'string',
     })
-    .option('output', {
-        alias: 'o',
-        description: 'Output directory path',
-        type: 'string',
-    })
-    .option('update', {
-        alias: 'u',
-        description: 'Update catalog.json with new paths',
-        type: 'boolean',
-    })
-    .demandOption(['input', 'output'], 'Please provide both input and output paths')
+    .demandOption(['input'], 'Please provide both input path')
     .help()
     .argv;
 
@@ -51,23 +41,13 @@ const io = new NodeIO()
 let auditData = [];
 
 // Check if the update flag is provided and read the existing catalog.json
-if (argv.update) {
-    try {
-        const rawAudit = await readFile('catalog.json', 'utf8');
-        auditData = JSON.parse(rawAudit);
-    } catch (error) {
-        console.error("Failed to read catalog.json. Make sure the file exists.");
-        process.exit(1);
-    }
-}
-
 function runCommand(command) {
     return new Promise((resolve, reject) => {
-        exec(command, (error, stdout, stderr) => {
-            // if (error) {
-            //     reject(error);
-            //     return;
-            // }
+        exec(`npx ${command}`, (error, stdout, stderr) => {
+            if (error) {
+                console.error(error);
+                return;
+            }
             resolve(stdout);
         });
     });
@@ -77,35 +57,20 @@ function runCommand(command) {
 const limit = pLimit(4);
 const inputDir = resolve(argv.input);  // Use provided input directory
 const paths = (await glob(resolve(inputDir, '**/*.glb')))
-const workspacePath = dirname(fileURLToPath(import.meta.url));
 
 const bar = new SingleBar({}, Presets.shades_classic);
 bar.start(paths.length, 0);
-
-// ensure output path exists, create it if not
-!existsSync(argv.output) && mkdirSync(argv.output, { recursive: true })
 
 console.log('📸  Taking screenshots...');
 
 // Iterate over all models and process.
 await Promise.all(paths.map((path) => limit(async () => {
-    const document = await io.read(path);
-
     const screenshotName = parse(path).name + '.jpg';
-    await runCommand(`screenshot-glb -i ${path} -o ${resolve(argv.output, screenshotName)} -w 320 -h 240 -c gray`);
-    //   -w, --width    Output image width
-    //  -h, --height   Output image height
-    //  -c, --color    Change the background color of the rendered image
-    if (argv.update) {
-        const name = parse(path).name;
-        const entryIndex = auditData.findIndex(entry => {
-            return parse(entry.src).name === name;
-        });
-        if (entryIndex !== -1) {
-            auditData[entryIndex].img = resolve(argv.output, name + '.jpg').substring(workspacePath.length + 1);
-        }
+    try {
+        await runCommand(`screenshot-glb -i ${path} -o ${resolve(argv.input, screenshotName)} -w 320 -h 240 -c gray`);
+    } catch (error) {
+        console.error(error);
     }
-
     bar.increment();
 })));
 
