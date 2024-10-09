@@ -20,7 +20,7 @@ const argv = yargs(hideBin(process.argv))
         description: 'Input directory path',
         type: 'string',
     })
-    .demandOption(['input'], 'Please provide both input path')
+    .demandOption(['input'], 'Please provide an input path')
     .help()
     .argv;
 
@@ -58,10 +58,10 @@ const limit = pLimit(4);
 const inputDir = resolve(argv.input);  // Use provided input directory
 const paths = (await glob(resolve(inputDir, '**/*.glb')))
 
+console.log('📸  Taking screenshots...');
+
 const bar = new SingleBar({}, Presets.shades_classic);
 bar.start(paths.length, 0);
-
-console.log('📸  Taking screenshots...');
 
 // Iterate over all models and process.
 await Promise.all(paths.map((path) => limit(async () => {
