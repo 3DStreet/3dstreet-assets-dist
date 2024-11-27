@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>GLB screenshot</title>
+    <style>
+      body {
+        margin: 0;
+      }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+      }
+    </script>
+    <style>
+      .loader {
+        width: 10px;
+        height: 10px;
+        border: 2px solid #888;
+        border-bottom-color: transparent;
+        border-radius: 50%;
+        display: inline-block;
+        box-sizing: border-box;
+        animation: rotation 1s linear infinite;
+      }
+
+      @keyframes rotation {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      img {
+        width: 34px;
+        height: 24px;
+        border: 1px solid black;
+        background-color: red;
+      }
+
+      figure {
+        display: inline-flex;
+        flex-flow: column;
+        margin: 0 2px;
+        padding: 0;
+      }
+
+      figcaption {
+        background-color: #222;
+        color: #fff;
+        font-size: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h3>Select Paths</h3>
+    <form id="path-form">
+      <div class="buttons">
+        <button type="button" id="select-all">Select All</button>
+        <button type="button" id="deselect-all">Select None</button>
+        <button type="button" id="select-noimage">Select Without Images</button>
+        <button type="button" id="generate-parts">Generate Images</button>
+        <button type="button" id="save">Images to JSON</button>
+      </div>
+      <div id="checklist"></div>
+      <a id="downloadAnchorElem" style="display:none"></a>
+    </form>
+    <script type="module" src="/glb-screenshot/script.js"></script>
+  </body>
+</html>
