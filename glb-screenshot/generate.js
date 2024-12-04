@@ -99,13 +99,14 @@ const generateFromGlbPath = async (path, config) => {
     // Position the object
     const bbox = new THREE.Box3().setFromObject(part);
     const size = bbox.getSize(new THREE.Vector3());
-    const maxDim = Math.max(size.x, size.y, size.z);
+    const maxDim = Math.max(size.x, size.y, size.z / 1.75);
     part.scale.set(
       config.scale / maxDim,
       config.scale / maxDim,
       config.scale / maxDim
     );
     part.position.set(0, -config.scale / 2, 0);
+    part.rotation.y = config.rotation * 180 / Math.PI;
 
     camera.position.set(0, 0, 3);
     camera.lookAt(0, 0, 0);
