@@ -17,29 +17,20 @@
       }
     </script>
     <style>
-      .loader {
-        width: 10px;
-        height: 10px;
-        border: 2px solid #888;
-        border-bottom-color: transparent;
-        border-radius: 50%;
-        display: inline-block;
-        box-sizing: border-box;
-        animation: rotation 1s linear infinite;
+      .generating {
+        color: purple;
       }
 
-      @keyframes rotation {
-        0% {
-          transform: rotate(0deg);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
+      .success {
+        color: green;
+      }
+
+      .err {
+        color: red;
       }
 
       img {
-        width: 34px;
-        height: 24px;
+        width: 160px;
         border: 1px solid black;
         background-color: red;
       }
@@ -54,23 +45,104 @@
       figcaption {
         background-color: #222;
         color: #fff;
-        font-size: 8px;
+        font-size: 12px;
+        font-family: monospace;
+      }
+
+      .buttons {
+        padding: 10px;
+        position: sticky;
+        top: 0px;
+        background-color: white;
+        border-bottom: 1px solid black;
+      }
+
+      table,
+      th,
+      td {
+        border: 1px solid black;
+        border-collapse: collapse;
       }
     </style>
   </head>
   <body>
-    <h3>Select Paths</h3>
+    <h1>Thumbnail Generation Utility</h1>
+    <div>
+      Instructions: Generate images and adjust parameters here. Export once
+      satisfied, and write the scene to the filesystem using
+      <span style="font-family: monospace"
+        >npm run glb:write &lt;SCENE_NAME&gt;</span
+      >.
+    </div>
     <form id="path-form">
       <div class="buttons">
-        <button type="button" id="select-all">Select All</button>
-        <button type="button" id="deselect-all">Select None</button>
-        <button type="button" id="select-noimage">Select Without Images</button>
-        <button type="button" id="generate-parts">Generate Images</button>
-        <button type="button" id="save">Images to JSON</button>
+        <table style="display: inline-block">
+          <tr>
+            <td>
+              <label for="scale">Mesh scale (%)</label>
+            </td>
+            <td>
+              <input type="number" name="scale" id="scale" value="100" />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="rotation">Mesh rotation (deg)</label>
+            </td>
+            <td>
+              <input type="number" name="rotation" id="rotation" value="0" />
+            </td>
+          </tr>
+        </table>
+        <table style="display: inline-block">
+          <tr>
+            <td>
+              <label for="width">Image width (px)</label>
+            </td>
+            <td>
+              <input type="number" name="width" id="width" value="320" />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="height">Image height (px)</label>
+            </td>
+            <td>
+              <input type="number" name="height" id="height" value="200" />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="bgColor">Image bg color</label>
+            </td>
+            <td>
+              <input type="text" name="bgColor" id="bgColor" value="gray" />
+            </td>
+          </tr>
+        </table>
+        <hr />
+        <div style="display: flex">
+          <button type="button" id="select-all">Select All</button>
+          <button type="button" id="select-none">Select None</button>
+          <button type="button" id="generate" style="margin-left: auto">
+            Generate selection
+          </button>
+          <button type="button" id="save">Export</button>
+        </div>
       </div>
-      <div id="checklist"></div>
-      <a id="downloadAnchorElem" style="display:none"></a>
+      <table id="table">
+        <th>
+          <tr>
+            <td></td>
+            <td>Category</td>
+            <td>Path</td>
+            <td></td>
+            <td>Images</td>
+          </tr>
+        </th>
+      </table>
+      <a id="downloadAnchorElem" style="display: none"></a>
     </form>
-    <script type="module" src="/glb-screenshot/script.js"></script>
+    <script type="module" src="/glb-screenshot/generate.js"></script>
   </body>
 </html>
