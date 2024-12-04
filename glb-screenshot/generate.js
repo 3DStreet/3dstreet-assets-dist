@@ -208,10 +208,11 @@ document.getElementById("save").onclick = async () => {
     const images = Array.from(row.querySelectorAll("img"));
     return acc.concat(
           images.map((image) => ({
-            thumbnail: image.src,
-            glbSrc: row.getAttribute("path"),
-            category: row.category,
-            name: image.getAttribute("partName") || row.getAttribute("path").split("/").at(-1).replace(".glb", "")
+            image: image.src,
+            filepath:
+              image.getAttribute("partName") ? row.getAttribute("path").replace(".glb", "-") +
+              image.getAttribute("partName") +
+              ".jpg" : row.getAttribute("path").replace(".glb", ".jpg"),
           }))
         )
   }, []);
