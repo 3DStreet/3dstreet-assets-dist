@@ -105,7 +105,8 @@ const generateFromGlbPath = async (path, config) => {
       config.scale / maxDim
     );
     part.position.set(0, -config.scale / 2, 0);
-    part.rotation.y = config.rotation * DEG_TO_RAD;
+    part.rotation.y = config.rotationY * DEG_TO_RAD;
+    part.rotation.x = config.rotationX * DEG_TO_RAD;
 
     renderer.render(scene, camera);
     const image = renderer.domElement.toDataURL("image/jpeg");
@@ -168,7 +169,8 @@ const generateRow = async (row) => {
     height: document.getElementById("height").value,
     bgColor: document.getElementById("bgColor").value,
     scale: document.getElementById("scale").value / 100,
-    rotation: document.getElementById("rotation").value,
+    rotationY: document.getElementById("rotationY").value,
+    rotationX: document.getElementById("rotationX").value,
   };
 
   try {
