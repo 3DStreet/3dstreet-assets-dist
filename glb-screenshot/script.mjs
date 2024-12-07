@@ -114,7 +114,7 @@ const generateFromGlbPath = async (path, config) => {
     return image;
   };
 
-  const glb = await loader.loadAsync(path);
+  const glb = await loader.loadAsync("/" + path);
 
   // Why do we need to duplicate this array?
   // Adding a mesh to a scene removes it from its parent scene, resizing the set that glb.scene
@@ -175,7 +175,7 @@ const generateRow = async (row) => {
 
   try {
     const results = await generateFromGlbPath(
-      "/" + row.getAttribute("path"),
+      row.getAttribute("path"),
       config
     );
 
