@@ -32,7 +32,7 @@
     "gltf:build": "node gltf-build.mjs -i ./src/models -o ./dist/models -u",
     "gltf:screenshots": "node gltf-screenshots.mjs -i ./dist/models -o ./dist/img -u",
     "gltf:pipeline": "npm run gltf:audit && npm run gltf:build && npm run gltf:screenshots",
-    "glb:util": "node ./glb-screenshot/generate.js && npx http-server -c-1 & open http://localhost:8080/glb-screenshot/index.html",
+    "glb:util": "node ./glb-screenshot/generate-filepath.mjs && npx http-server -c-1 & open http://localhost:8080/glb-screenshot/index.html",
     "glb:write": "node ./glb-screenshot/write-images.mjs -i"
   }
 }
