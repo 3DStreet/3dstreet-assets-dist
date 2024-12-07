@@ -17,6 +17,10 @@
       }
     </script>
     <style>
+      body {
+        margin: 20px;
+      }
+
       .generating {
         color: purple;
       }
@@ -30,31 +34,39 @@
       }
 
       img {
-        width: 160px;
-        border: 1px solid black;
-        background-color: red;
+        width: 200px;
       }
 
       figure {
         display: inline-flex;
+        position: relative;
         flex-flow: column;
         margin: 0 2px;
         padding: 0;
+        border: 1px solid black;
       }
 
-      figcaption {
-        background-color: #222;
-        color: #fff;
+      .partName {
+        position: absolute;
+        top: 5px;
+        left: 5px;
         font-size: 12px;
-        font-family: monospace;
+        color: white !important;
+      }
+
+      .remove {
+        position: absolute;
+        top: 0px;
+        right: 0px;
+        font-size: 10px;
+        color: red !important;
       }
 
       .buttons {
-        padding: 10px;
         position: sticky;
         top: 0px;
         background-color: white;
-        border-bottom: 1px solid black;
+        z-index: 999;
       }
 
       table,
@@ -67,13 +79,29 @@
   </head>
   <body>
     <h1>Thumbnail Generation Utility</h1>
-    <div>
-      Instructions: Generate images and adjust parameters here. Export once
-      satisfied, and write the scene to the filesystem using
-      <span style="font-family: monospace"
-        >npm run glb:write &lt;SCENE_NAME&gt;</span
-      >.
-    </div>
+    <ul>
+      <li>Generate images and adjust parameters.</li>
+      <li>
+        Delete images by clicking on the X. Only visible images will be
+        exported. Edit the export name if needed.
+      </li>
+      <li>Re-generate one group at a time if needed.</li>
+      <li>
+        Export when satisfied, and use the provided npm script to write to the
+        filesystem:
+        <span style="font-family: monospace"
+          >npm run glb:write &lt;SCENE_NAME&gt;</span
+        >
+        <br />
+        <span style="color: red"
+          >NOTE: The files will be written as
+          <span style="font-family: monospace">FILE_NAME.jpg</span> in the
+          <strong>same location</strong> as the original
+          <span style="font-family: monospace"> .glb</span> file.</span
+        >
+      </li>
+    </ul>
+    <br />
     <form id="path-form">
       <div class="buttons">
         <table style="display: inline-block">
@@ -124,25 +152,16 @@
         <div style="display: flex">
           <button type="button" id="select-all">Select All</button>
           <button type="button" id="select-none">Select None</button>
-          <button type="button" id="generate" style="margin-left: auto">
+          <button type="button" id="generate" style="margin-left: 50px">
             Generate selection
           </button>
           <button type="button" id="save">Export</button>
         </div>
+        <hr />
       </div>
-      <table id="table">
-        <th>
-          <tr>
-            <td></td>
-            <td>Category</td>
-            <td>Path</td>
-            <td></td>
-            <td>Images</td>
-          </tr>
-        </th>
-      </table>
+      <table id="table"></table>
       <a id="downloadAnchorElem" style="display: none"></a>
     </form>
-    <script type="module" src="/glb-screenshot/generate.js"></script>
+    <script type="module" src="/glb-screenshot/script.mjs"></script>
   </body>
 </html>
