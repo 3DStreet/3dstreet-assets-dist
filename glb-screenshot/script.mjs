@@ -4,32 +4,31 @@ import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import paths from "./paths.json" with { type: "json" };
 
+const DEG_TO_RAD = Math.PI / 180;
+
+// A factor to scale the importance of the z-size of the object when computing its overall scale
+const Z_SCALE_FACTOR = 1 / 1.75;
+const LIGHTING_COLOR = 0xffffff;
+const CAMERA_DIST = 3;
+
 // Create the list of paths
 const tableContainer = document.getElementById("table");
 paths.forEach((path) => {
   const row = document.createElement("tr");
   row.setAttribute("path", path);
 
-  const col0 = document.createElement("td");
+  const checkedColumn = document.createElement("td");
   const checkbox = document.createElement("input");
   checkbox.type = "checkbox";
-  col0.appendChild(checkbox);
-  row.appendChild(col0);
+  checkedColumn.appendChild(checkbox);
+  row.appendChild(checkedColumn);
 
-  // The second-level folder (i.e. objects/) is the category
-  const col1 = document.createElement("td")
-  const category = document.createElement("input")
-  category.type = "text"
-  category.value = path.split("/").at(1)
-  col1.appendChild(category)
-  row.appendChild(col1)
+  const pathColumn = document.createElement("td");
+  pathColumn.innerText = path;
+  row.appendChild(pathColumn);
 
-  const col2 = document.createElement("td");
-  col2.innerText = path;
-  row.appendChild(col2);
-
-  const col3 = document.createElement("td");
-  col3.style = "display: flex; flex-direction: column;";
+  const buttonColumn = document.createElement("td");
+  buttonColumn.style = "display: flex; flex-direction: column;";
   const genButton = document.createElement("input");
   genButton.type = "button";
   genButton.value = "Generate";
@@ -37,23 +36,24 @@ paths.forEach((path) => {
     row.querySelectorAll("figure").forEach((f) => f.remove());
     generateRow(row);
   };
-  col3.appendChild(genButton);
-  row.appendChild(col3);
+  buttonColumn.appendChild(genButton);
+  row.appendChild(buttonColumn);
   const removeButton = document.createElement("input");
   removeButton.type = "button";
   removeButton.value = "Remove";
   removeButton.onclick = () => {
     row.querySelectorAll("figure").forEach((f) => f.remove());
   };
-  col3.appendChild(removeButton);
+  buttonColumn.appendChild(removeButton);
 
-  const col4 = document.createElement("td");
-  col4.classList.add("figures");
-  row.appendChild(col4);
+  const figColumn = document.createElement("td");
+  figColumn.classList.add("figures");
+  row.appendChild(figColumn);
 
   tableContainer.appendChild(row);
 });
 
+// Select-all/none logic
 document.getElementById("select-all").onclick = () => {
   document
     .querySelectorAll('#table input[type="checkbox"]')
@@ -73,9 +73,9 @@ dracoLoader.setDecoderConfig({ type: "js" });
 dracoLoader.setDecoderPath("https://www.gstatic.com/draco/v1/decoders/");
 loader.setDRACOLoader(dracoLoader);
 loader.setMeshoptDecoder(MeshoptDecoder);
+const renderer = new THREE.WebGLRenderer();
 
 const generateFromGlbPath = async (path, config) => {
-  const renderer = new THREE.WebGLRenderer();
   renderer.setSize(config.width, config.height);
   renderer.setClearColor(config.bgColor, 1);
 
@@ -85,31 +85,27 @@ const generateFromGlbPath = async (path, config) => {
     0.1,
     100
   );
-
-  console.log(config);
+  camera.position.set(0, 0, CAMERA_DIST);
+  camera.lookAt(0, 0, 0);
 
   const scene = new THREE.Scene();
-  const ambientLight = new THREE.AmbientLight(0xffffff, 1);
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 4);
+  const ambientLight = new THREE.AmbientLight(LIGHTING_COLOR, 1);
+  const directionalLight = new THREE.DirectionalLight(LIGHTING_COLOR, 4);
   directionalLight.position.set(1, 1, 2);
   scene.add(ambientLight, directionalLight);
 
   const getImage = (part) => {
     scene.add(part);
-    // Position the object
     const bbox = new THREE.Box3().setFromObject(part);
     const size = bbox.getSize(new THREE.Vector3());
-    const maxDim = Math.max(size.x, size.y, size.z / 1.75);
+    const maxDim = Math.max(size.x, size.y, size.z * Z_SCALE_FACTOR);
     part.scale.set(
       config.scale / maxDim,
       config.scale / maxDim,
       config.scale / maxDim
     );
     part.position.set(0, -config.scale / 2, 0);
-    part.rotation.y = config.rotation * 180 / Math.PI;
-
-    camera.position.set(0, 0, 3);
-    camera.lookAt(0, 0, 0);
+    part.rotation.y = config.rotation * DEG_TO_RAD;
 
     renderer.render(scene, camera);
     const image = renderer.domElement.toDataURL("image/jpeg");
@@ -118,7 +114,15 @@ const generateFromGlbPath = async (path, config) => {
   };
 
   const glb = await loader.loadAsync(path);
-  const parts = glb.scene.children;
+
+  // Why do we need to duplicate this array?
+  // Adding a mesh to a scene removes it from its parent scene, resizing the set that glb.scene
+  // contains originally. This results in skipping every other part as we iterate through
+  // the array, so we must separate obtaining the meshes and using them.
+  const parts = [];
+  glb.scene.children.forEach((part) => {
+    parts.push(part);
+  });
   return parts.map((part) => ({
     path: path,
     partName: part.name,
@@ -128,16 +132,32 @@ const generateFromGlbPath = async (path, config) => {
 
 const getFig = (result) => {
   const fig = document.createElement("figure");
+  const parentPath = result.path.split("/").slice(0, -1).join("/") + "/";
+  fig.setAttribute("parentPath", parentPath);
 
   const img = document.createElement("img");
   img.src = result.image;
   img.setAttribute("path", result.path);
-  img.setAttribute("partName", result.partName);
   fig.appendChild(img);
 
-  const caption = document.createElement("figcaption");
-  caption.innerText = result.partName || "<NO NAME>";
-  fig.appendChild(caption);
+  const partName = document.createElement("div");
+  partName.className = "partName";
+  partName.innerText = result.partName || "unknown";
+  fig.appendChild(partName);
+
+  const exportName = document.createElement("input");
+  exportName.type = "text";
+  exportName.style = "width: 100%; box-sizing: border-box;";
+  const filename = result.path.split("/").at(-1).replace(".glb", "");
+  exportName.value = filename + "-" + (result.partName || "unknown");
+  fig.appendChild(exportName);
+
+  const removeFig = document.createElement("input");
+  removeFig.type = "button";
+  removeFig.className = "remove";
+  removeFig.value = "X";
+  removeFig.onclick = () => fig.remove();
+  fig.appendChild(removeFig);
 
   return fig;
 };
@@ -156,7 +176,20 @@ const generateRow = async (row) => {
       "/" + row.getAttribute("path"),
       config
     );
-    const figs = results.map(getFig);
+
+    // Duplicate part names get a postfix
+    const partnameCt = {};
+    const resultsDeduped = results.map((r) => {
+      partnameCt[r.partName]++;
+      return {
+        ...r,
+        partName:
+          r.partName +
+          (partnameCt[r.partName] > 0 ? `-${partnameCt[r.partName]}` : ""),
+      };
+    });
+
+    const figs = resultsDeduped.map(getFig);
     const figsContainer = row.querySelector(".figures");
     figs.forEach((f) => figsContainer.append(f));
     row.classList.add("success");
@@ -168,13 +201,15 @@ const generateRow = async (row) => {
     row.appendChild(errDiv);
     throw err;
   }
-  row.classList.remove("generating");
 };
 
 document.getElementById("generate").onclick = async () => {
   const checked = document.querySelectorAll(
     '#table input[type="checkbox"]:checked'
   );
+
+  const genButtons = document.querySelectorAll("#save, #generate");
+  genButtons.forEach((b) => (b.disabled = true));
 
   // Remove all the old images
   checked.forEach((checkbox) => {
@@ -186,35 +221,29 @@ document.getElementById("generate").onclick = async () => {
   for (const checkbox of checked) {
     const row = checkbox.parentElement.parentElement;
     await generateRow(row);
+    row.classList.remove("generating");
   }
+
+  genButtons.forEach((b) => (b.disabled = false));
 };
-
-
-    // {
-    //     "id": "sedan-rig",
-    //     "name": "Sedan",
-    //     "src": "https://assets.3dstreet.app/sets/vehicles-rig/gltf-exports/draco/toyota-prius-rig.glb",
-    //     "img": "https://assets.3dstreet.app/sets/vehicles-rig/gltf-exports/draco/toyota-prius-rig.jpg",
-    //     "category": "vehicles-rigged"
-    // },
 
 document.getElementById("save").onclick = async () => {
   const rows = Array.from(document.querySelectorAll("#table tr"));
-
-  console.log(rows);
-
   const output = rows.reduce((acc, row) => {
-    console.log(acc);
-    const images = Array.from(row.querySelectorAll("img"));
+    const figs = Array.from(row.querySelectorAll("figure"));
+
     return acc.concat(
-          images.map((image) => ({
-            image: image.src,
-            filepath:
-              image.getAttribute("partName") ? row.getAttribute("path").replace(".glb", "-") +
-              image.getAttribute("partName") +
-              ".jpg" : row.getAttribute("path").replace(".glb", ".jpg"),
-          }))
-        )
+      figs.map((fig) => {
+        const parentPath = fig.getAttribute("parentPath");
+        const exportName = fig.querySelector('input[type="text"]').value;
+        const image = fig.querySelector("img");
+
+        return {
+          image: image.src,
+          filepath: parentPath + exportName + ".jpg",
+        };
+      })
+    );
   }, []);
 
   // Download the JSON
