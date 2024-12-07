@@ -73,7 +73,7 @@ dracoLoader.setDecoderConfig({ type: "js" });
 dracoLoader.setDecoderPath("https://www.gstatic.com/draco/v1/decoders/");
 loader.setDRACOLoader(dracoLoader);
 loader.setMeshoptDecoder(MeshoptDecoder);
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 
 const generateFromGlbPath = async (path, config) => {
   renderer.setSize(config.width, config.height);
