@@ -21,3 +21,16 @@ Under the following terms:
 No additional restrictions — You may not apply legal terms or technological measures that legally restrict others from doing anything the license permits.
 
 Please contact kieran@3dstreet.org for other licensing options.
+
+# Generating screenshots using glb-screenshot utility
+
+The `glb-screenshot` is a simple web app used for generating screenshots part-by-part for meshes grouped in the `.glb` file format. 
+
+## Usage
+
+> Ensure that the prerequisite packages are installed via `npm i`
+
+1. Start the utlity by running `npm run glb:util`.
+2. Generate the desired screenshots of the models/parts. Instructions are included in the web app.
+3. Download the screenshot data.
+4. Find the location of the screenshot data (titled `scene.json`) and write it to the local filesystem with `npm run glb:write <PATH_TO_SCENE_JSON>`. This will write the images to the local filesystem.
