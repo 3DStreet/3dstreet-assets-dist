@@ -42,3 +42,5 @@ b) Grants to 3DStreet and its successors a worldwide, non-exclusive, perpetual, 
 * Use the Contributed Assets for any purpose, whether commercial or non-commercial
 
 c) Warrants that they have the legal right to grant such license and that the Contributed Assets do not infringe upon any third-party intellectual property rights
+
+d) It is at the sole discretion of 3DStreet staff as to which objects, textures, or code we may choose to integrate into the 3DStreet application.
