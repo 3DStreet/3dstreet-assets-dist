@@ -34,5 +34,8 @@
     "gltf:pipeline": "npm run gltf:audit && npm run gltf:build && npm run gltf:screenshots",
     "glb:util": "node ./glb-screenshot/generate-filepath.mjs && npx http-server -c-1 & open http://localhost:8080/glb-screenshot/index.html",
     "glb:write": "node ./glb-screenshot/write-images.mjs -i"
+  },
+  "devDependencies": {
+    "jszip": "^3.10.1"
   }
 }

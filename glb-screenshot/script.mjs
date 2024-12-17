@@ -2,10 +2,12 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
+import { GLTFExporter } from "three/addons/exporters/GLTFExporter.js";
 import paths from "./paths.json" with { type: "json" };
+import "jszip";
 
+const DIST_URL = "https://assets.3dstreet.app";
 const DEG_TO_RAD = Math.PI / 180;
-
 // A factor to scale the importance of the z-size of the object when computing its overall scale
 const Z_SCALE_FACTOR = 1 / 1.75;
 const LIGHTING_COLOR = 0xffffff;
@@ -74,6 +76,14 @@ dracoLoader.setDecoderPath("https://www.gstatic.com/draco/v1/decoders/");
 loader.setDRACOLoader(dracoLoader);
 loader.setMeshoptDecoder(MeshoptDecoder);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
+const exporter = new GLTFExporter();
+
+const getGlb = async (part) => {
+  const scene = new THREE.Scene();
+  scene.add(part);
+  const bin = await exporter.parseAsync(scene, { binary: true });
+  return bin;
+};
 
 const generateFromGlbPath = async (path, config) => {
   renderer.setSize(config.width, config.height);
@@ -124,17 +134,35 @@ const generateFromGlbPath = async (path, config) => {
   glb.scene.children.forEach((part) => {
     parts.push(part);
   });
-  return parts.map((part) => ({
-    path: path,
-    partName: part.name,
-    image: getImage(part),
-  }));
+  console.log(parts);
+  return await Promise.all(
+    parts.map(async (part) => ({
+      id: part.uuid,
+      path: path,
+      partName: part.name,
+      image: getImage(part),
+      glb: await getGlb(part),
+    }))
+  );
 };
 
+function uuidv4() {
+  return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) =>
+    (
+      +c ^
+      (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (+c / 4)))
+    ).toString(16)
+  );
+}
+
+const figData = {};
 const getFig = (result) => {
+  const id = uuidv4();
   const fig = document.createElement("figure");
   const parentPath = result.path.split("/").slice(0, -1).join("/") + "/";
   fig.setAttribute("parentPath", parentPath);
+  fig.setAttribute("id", id);
+  figData[id] = result;
 
   const img = document.createElement("img");
   img.src = result.image;
@@ -150,7 +178,8 @@ const getFig = (result) => {
   exportName.type = "text";
   exportName.style = "width: 100%; box-sizing: border-box;";
   const filename = result.path.split("/").at(-1).replace(".glb", "");
-  exportName.value = filename + "-" + (result.partName || "unknown");
+  exportName.value =
+    "default/" + filename + "-" + (result.partName || "unknown");
   fig.appendChild(exportName);
 
   const removeFig = document.createElement("input");
@@ -174,10 +203,8 @@ const generateRow = async (row) => {
   };
 
   try {
-    const results = await generateFromGlbPath(
-      row.getAttribute("path"),
-      config
-    );
+    const results = await generateFromGlbPath(row.getAttribute("path"), config);
+    console.log(results);
 
     // Duplicate part names get a postfix
     const partnameCt = {};
@@ -229,31 +256,68 @@ document.getElementById("generate").onclick = async () => {
   genButtons.forEach((b) => (b.disabled = false));
 };
 
+function base64ToArrayBuffer(base64) {
+  var binaryString = atob(base64);
+  var bytes = new Uint8Array(binaryString.length);
+  for (var i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
+const save = (blob, filename) => {
+  const link = document.createElement("a");
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+};
+
 document.getElementById("save").onclick = async () => {
   const rows = Array.from(document.querySelectorAll("#table tr"));
   const output = rows.reduce((acc, row) => {
     const figs = Array.from(row.querySelectorAll("figure"));
-
     return acc.concat(
       figs.map((fig) => {
-        const parentPath = fig.getAttribute("parentPath");
-        const exportName = fig.querySelector('input[type="text"]').value;
-        const image = fig.querySelector("img");
+        const outPath = fig.querySelector('input[type="text"]').value;
+        const segments = outPath.split("/");
+        const category = segments.at(0);
+        const name = segments.at(1);
 
         return {
-          image: image.src,
-          filepath: parentPath + exportName + ".jpg",
+          outPath,
+          name,
+          category,
+          ...figData[fig.getAttribute("id")],
         };
       })
     );
   }, []);
 
-  // Download the JSON
-  const dataStr =
-    "data:text/json;charset=utf-8," +
-    encodeURIComponent(JSON.stringify(output));
-  const dlAnchorElem = document.getElementById("downloadAnchorElem");
-  dlAnchorElem.setAttribute("href", dataStr);
-  dlAnchorElem.setAttribute("download", "scene.json");
-  dlAnchorElem.click();
+  console.log(output);
+
+  // Download the zip file of assets and thumbnails, and catalog
+  const zip = new JSZip();
+  output.forEach((out) => {
+    // Drop the 'data:image/jpeg;base64' prefix on the image data
+    zip.file(`${out.outPath}.jpg`, base64ToArrayBuffer(out.image.slice(23)));
+    zip.file(`${out.outPath}.glb`, out.glb);
+  });
+
+  // Generate the catalog.json
+  const catalog = output.map((out) => ({
+    id: out.partName,
+    name: out.name,
+    src: `${DIST_URL}/${out.outPath}.glb`,
+    img: `${DIST_URL}/${out.outPath}.jpg`,
+    category: out.category,
+  }));
+  const catalogBlob = new Blob([JSON.stringify(catalog)], {
+    type: "application/json",
+  });
+  zip.file(`catalog.json`, catalogBlob);
+
+  const outputBlob = await zip.generateAsync({ type: "blob" });
+  save(outputBlob, "out.zip");
 };
