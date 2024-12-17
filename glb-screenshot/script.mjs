@@ -114,7 +114,8 @@ const generateFromGlbPath = async (path, config) => {
       config.scale / maxDim,
       config.scale / maxDim
     );
-    part.position.set(0, -config.scale / 2, 0);
+    console.log(config.offsetY)
+    part.position.set(0, (-config.scale / 2) + Number(config.offsetY), 0);
     part.rotation.y = config.rotationY * DEG_TO_RAD;
     part.rotation.x = config.rotationX * DEG_TO_RAD;
 
@@ -185,6 +186,7 @@ const getFig = (result) => {
   const removeFig = document.createElement("input");
   removeFig.type = "button";
   removeFig.className = "remove";
+  removeFig.tabIndex = -1;
   removeFig.value = "X";
   removeFig.onclick = () => fig.remove();
   fig.appendChild(removeFig);
@@ -200,6 +202,7 @@ const generateRow = async (row) => {
     scale: document.getElementById("scale").value / 100,
     rotationY: document.getElementById("rotationY").value,
     rotationX: document.getElementById("rotationX").value,
+    offsetY: document.getElementById("offsetY").value,
   };
 
   try {
@@ -281,14 +284,9 @@ document.getElementById("save").onclick = async () => {
     return acc.concat(
       figs.map((fig) => {
         const outPath = fig.querySelector('input[type="text"]').value;
-        const segments = outPath.split("/");
-        const category = segments.at(0);
-        const name = segments.at(1);
 
         return {
           outPath,
-          name,
-          category,
           ...figData[fig.getAttribute("id")],
         };
       })
@@ -302,21 +300,21 @@ document.getElementById("save").onclick = async () => {
   output.forEach((out) => {
     // Drop the 'data:image/jpeg;base64' prefix on the image data
     zip.file(`${out.outPath}.jpg`, base64ToArrayBuffer(out.image.slice(23)));
-    zip.file(`${out.outPath}.glb`, out.glb);
+    // zip.file(`${out.outPath}.glb`, out.glb);
   });
 
   // Generate the catalog.json
-  const catalog = output.map((out) => ({
-    id: out.partName,
-    name: out.name,
-    src: `${DIST_URL}/${out.outPath}.glb`,
-    img: `${DIST_URL}/${out.outPath}.jpg`,
-    category: out.category,
-  }));
-  const catalogBlob = new Blob([JSON.stringify(catalog)], {
-    type: "application/json",
-  });
-  zip.file(`catalog.json`, catalogBlob);
+//   const catalog = output.map((out) => ({
+//     id: out.partName,
+//     name: out.name,
+//     src: `${DIST_URL}/${out.outPath}.glb`,
+//     img: `${DIST_URL}/${out.outPath}.jpg`,
+//     category: out.category,
+//   }));
+//   const catalogBlob = new Blob([JSON.stringify(catalog)], {
+//     type: "application/json",
+//   });
+//   zip.file(`catalog.json`, catalogBlob);
 
   const outputBlob = await zip.generateAsync({ type: "blob" });
   save(outputBlob, "out.zip");
