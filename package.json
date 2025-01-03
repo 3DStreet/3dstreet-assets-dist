@@ -1,8 +1,8 @@
 {
   "dependencies": {
-    "@gltf-transform/core": "^3.4.4",
-    "@gltf-transform/extensions": "^3.4.4",
-    "@gltf-transform/functions": "^3.4.4",
+    "@gltf-transform/core": "4.1.1",
+    "@gltf-transform/extensions": "4.1.1",
+    "@gltf-transform/functions": "4.1.1",
     "@shopify/screenshot-glb": "^1.9.1",
     "aframe-atlas-uvs-component": "^3.0.0",
     "aframe-gridhelper-component": "^0.2.0",
