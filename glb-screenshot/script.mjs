@@ -125,8 +125,54 @@ const generateFromGlbPath = async (path, config) => {
     return image;
   };
 
+  const getWholeGlbImage = (glbScene) => {
+    // Add the entire GLB scene
+    scene.add(glbScene);
+    
+    // Calculate bounding box for the entire GLB
+    const bbox = new THREE.Box3().setFromObject(glbScene);
+    const size = bbox.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z * Z_SCALE_FACTOR);
+    
+    // Scale and position the entire GLB
+    glbScene.scale.set(
+      config.scale / maxDim,
+      config.scale / maxDim,
+      config.scale / maxDim
+    );
+    glbScene.position.set(0, (-config.scale / 2) + Number(config.offsetY), 0);
+    glbScene.rotation.y = config.rotationY * DEG_TO_RAD;
+    glbScene.rotation.x = config.rotationX * DEG_TO_RAD;
+    
+    // Render and get image
+    renderer.render(scene, camera);
+    const image = renderer.domElement.toDataURL("image/jpeg");
+    
+    // Remove the GLB scene
+    scene.remove(glbScene);
+    
+    return image;
+  };
+
   const glb = await loader.loadAsync("/" + path);
 
+  // If separateParts is false, create one thumbnail for the whole GLB
+  if (!config.separateParts) {
+    // Create a copy of the scene to avoid modifying the original
+    const glbSceneCopy = glb.scene.clone();
+    const wholeImage = getWholeGlbImage(glbSceneCopy);
+    
+    return [{
+      id: uuidv4(),
+      path: path,
+      partName: "whole-model",
+      image: wholeImage,
+      // Use the original scene for the GLB
+      glb: await getGlb(glb.scene),
+    }];
+  }
+  
+  // Otherwise create separate thumbnails for each part (original behavior)
   // Why do we need to duplicate this array?
   // Adding a mesh to a scene removes it from its parent scene, resizing the set that glb.scene
   // contains originally. This results in skipping every other part as we iterate through
@@ -136,6 +182,7 @@ const generateFromGlbPath = async (path, config) => {
     parts.push(part);
   });
   console.log(parts);
+  
   return await Promise.all(
     parts.map(async (part) => ({
       id: part.uuid,
@@ -203,6 +250,7 @@ const generateRow = async (row) => {
     rotationY: document.getElementById("rotationY").value,
     rotationX: document.getElementById("rotationX").value,
     offsetY: document.getElementById("offsetY").value,
+    separateParts: document.getElementById("separateParts").checked,
   };
 
   try {
