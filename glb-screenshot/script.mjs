@@ -13,6 +13,9 @@ const Z_SCALE_FACTOR = 1 / 1.75;
 const LIGHTING_COLOR = 0xffffff;
 const CAMERA_DIST = 3;
 
+// Variable to track the last checked checkbox for shift-click functionality
+let lastCheckedCheckbox = null;
+
 // Create the list of paths
 const tableContainer = document.getElementById("table");
 paths.forEach((path) => {
@@ -22,6 +25,31 @@ paths.forEach((path) => {
   const checkedColumn = document.createElement("td");
   const checkbox = document.createElement("input");
   checkbox.type = "checkbox";
+  
+  // Add shift-click functionality
+  checkbox.addEventListener('click', function(e) {
+    if (e.shiftKey && lastCheckedCheckbox) {
+      // Get all checkboxes
+      const checkboxes = Array.from(document.querySelectorAll('#table input[type="checkbox"]'));
+      
+      // Find the indices of the current and last checked checkboxes
+      const startIdx = checkboxes.indexOf(lastCheckedCheckbox);
+      const endIdx = checkboxes.indexOf(this);
+      
+      // Determine the range to check
+      const start = Math.min(startIdx, endIdx);
+      const end = Math.max(startIdx, endIdx);
+      
+      // Check all checkboxes in the range
+      for (let i = start; i <= end; i++) {
+        checkboxes[i].checked = this.checked;
+      }
+    }
+    
+    // Update the last checked checkbox
+    lastCheckedCheckbox = this;
+  });
+  
   checkedColumn.appendChild(checkbox);
   row.appendChild(checkedColumn);
 
@@ -217,10 +245,13 @@ const getFig = (result) => {
   img.setAttribute("path", result.path);
   fig.appendChild(img);
 
-  const partName = document.createElement("div");
-  partName.className = "partName";
-  partName.innerText = result.partName || "unknown";
-  fig.appendChild(partName);
+  // Only add part name if it exists (when separate parts is selected)
+  if (result.partName) {
+    const partName = document.createElement("div");
+    partName.className = "partName";
+    partName.innerText = result.partName;
+    fig.appendChild(partName);
+  }
 
   const exportName = document.createElement("input");
   exportName.type = "text";
