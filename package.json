@@ -18,6 +18,8 @@
     "gltf-pipeline": "^4.1.0",
     "meshoptimizer": "^0.19.0",
     "p-limit": "^4.0.0",
+    "sharp": "^0.33.5",
+    "three": "^0.170.0",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
     "yargs": "^17.7.2"
@@ -29,6 +31,11 @@
     "gltf:audit": "node gltf-audit.mjs -i ./src/models",
     "gltf:build": "node gltf-build.mjs -i ./src/models -o ./dist/models -u",
     "gltf:screenshots": "node gltf-screenshots.mjs -i ./dist/models -o ./dist/img -u",
-    "gltf:pipeline": "npm run gltf:audit && npm run gltf:build && npm run gltf:screenshots"
+    "gltf:pipeline": "npm run gltf:audit && npm run gltf:build && npm run gltf:screenshots",
+    "glb:util": "node ./glb-screenshot/generate-filepath.mjs && npx http-server -c-1 --cors --port 8080 & open http://localhost:8080/glb-screenshot/index.html",
+    "glb:write": "node ./glb-screenshot/write-images.mjs -i"
+  },
+  "devDependencies": {
+    "jszip": "^3.10.1"
   }
 }

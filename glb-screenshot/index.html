@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>GLB screenshot</title>
+    <style>
+      body {
+        margin: 0;
+      }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+          "jszip": "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.js"
+        }
+      }
+    </script>
+    <style>
+      body {
+        margin: 20px;
+      }
+
+      .generating {
+        color: purple;
+      }
+
+      .success {
+        color: green;
+      }
+
+      .err {
+        color: red;
+      }
+
+      img {
+        width: 200px;
+      }
+
+      figure {
+        display: inline-flex;
+        position: relative;
+        flex-flow: column;
+        margin: 0 2px;
+        padding: 0;
+        border: 1px solid black;
+      }
+
+      .partName {
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        font-size: 12px;
+        color: white !important;
+      }
+
+      .remove {
+        position: absolute;
+        top: 0px;
+        right: 0px;
+        font-size: 10px;
+        color: red !important;
+      }
+
+      .buttons {
+        position: sticky;
+        top: 0px;
+        background-color: white;
+        z-index: 999;
+      }
+
+      table,
+      th,
+      td {
+        border: 1px solid black;
+        border-collapse: collapse;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Thumbnail Generation Utility</h1>
+    <ul>
+      <li>Generate images and adjust parameters.</li>
+      <li>
+        Delete images by clicking on the X. Only visible images will be
+        exported. Edit the export name if needed.
+      </li>
+      <li>Re-generate one group at a time if needed.</li>
+      <li>
+        Export when satisfied, and use the provided npm script to write to the
+        filesystem:
+        <span style="font-family: monospace"
+          >npm run glb:write &lt;SCENE_NAME&gt;</span
+        >
+        <br />
+        <span style="color: red"
+          >NOTE: The files will be written as
+          <span style="font-family: monospace">FILE_NAME.jpg</span> in the
+          <strong>same location</strong> as the original
+          <span style="font-family: monospace"> .glb</span> file.</span
+        >
+      </li>
+    </ul>
+    <br />
+    <form id="path-form">
+      <div class="buttons">
+        <table style="display: inline-block">
+          <tr>
+            <td>
+              <label for="scale">Mesh scale (%)</label>
+            </td>
+            <td>
+              <input type="number" name="scale" id="scale" value="100" />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="offsetY">Mesh offset Y</label>
+            </td>
+            <td>
+              <input type="number" name="offsetY" id="offsetY" value="0" />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="rotationY">Mesh rot horizontal (deg)</label>
+            </td>
+            <td>
+              <input type="number" name="rotationY" id="rotationY" value="0" />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="rotationX">Mesh rot vertical (deg)</label>
+            </td>
+            <td>
+              <input type="number" name="rotationX" id="rotationX" value="0" />
+            </td>
+          </tr>
+        </table>
+        <table style="display: inline-block">
+          <tr>
+            <td>
+              <label for="width">Image width (px)</label>
+            </td>
+            <td>
+              <input type="number" name="width" id="width" value="320" />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="height">Image height (px)</label>
+            </td>
+            <td>
+              <input type="number" name="height" id="height" value="240" />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="bgColor">Image bg color</label>
+            </td>
+            <td>
+              <input type="text" name="bgColor" id="bgColor" value="gray" />
+            </td>
+          </tr>
+        </table>
+        <hr />
+        <div style="display: flex">
+          <button type="button" id="select-all">Select All</button>
+          <button type="button" id="select-none">Select None</button>
+          <button type="button" id="generate" style="margin-left: 50px">
+            Generate selection
+          </button>
+          <button type="button" id="save">Export</button>
+        </div>
+        <hr />
+      </div>
+      <table id="table"></table>
+      <a id="downloadAnchorElem" style="display: none"></a>
+    </form>
+    <script type="module" src="/glb-screenshot/script.mjs"></script>
+  </body>
+</html>

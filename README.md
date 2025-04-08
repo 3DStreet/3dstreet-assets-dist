@@ -3,6 +3,19 @@ Distribution repo for 3DStreet assets for use by first and third-party clients.
 
 The entirety of this repo is available on this subdomain of 3dstreet.app: https://assets.3dstreet.app/
 
+# Generating screenshots using glb-screenshot utility
+
+The `glb-screenshot` is a simple web app used for generating screenshots part-by-part for meshes grouped in the `.glb` file format. 
+
+## Usage
+
+> Ensure that the prerequisite packages are installed via `npm i`
+
+1. Start the utlity by running `npm run glb:util`.
+2. Generate the desired screenshots of the models/parts. Instructions are included in the web app.
+3. Download the screenshot data.
+4. Find the location of the screenshot data (titled `scene.json`) and write it to the local filesystem with `npm run glb:write <PATH_TO_SCENE_JSON>`. This will write the images to the local filesystem.
+
 # End-User License for Use of 3D Assets
 
 If you wish to use assets from this library, these are made available to users through CC BY-SA 4.0 License.
