@@ -17,7 +17,7 @@ async function saveImageFromBase64(imageData, outputPath) {
   try {
     const base64Data = imageData.split(";base64,").pop();
     const buffer = Buffer.from(base64Data, "base64");
-    await sharp(buffer).jpeg().toFile(outputPath);
+    await sharp(buffer).webp().toFile(outputPath);
     console.log(`Image saved to ${outputPath}`);
   } catch (error) {
     console.error("Error saving image:", error);

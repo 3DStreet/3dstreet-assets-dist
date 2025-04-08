@@ -120,7 +120,7 @@ const generateFromGlbPath = async (path, config) => {
     part.rotation.x = config.rotationX * DEG_TO_RAD;
 
     renderer.render(scene, camera);
-    const image = renderer.domElement.toDataURL("image/jpeg");
+    const image = renderer.domElement.toDataURL("image/webp");
     scene.remove(part);
     return image;
   };
@@ -146,7 +146,7 @@ const generateFromGlbPath = async (path, config) => {
     
     // Render and get image
     renderer.render(scene, camera);
-    const image = renderer.domElement.toDataURL("image/jpeg");
+    const image = renderer.domElement.toDataURL("image/webp");
     
     // Remove the GLB scene
     scene.remove(glbScene);
@@ -346,8 +346,8 @@ document.getElementById("save").onclick = async () => {
   // Download the zip file of assets and thumbnails, and catalog
   const zip = new JSZip();
   output.forEach((out) => {
-    // Drop the 'data:image/jpeg;base64' prefix on the image data
-    zip.file(`${out.outPath}.jpg`, base64ToArrayBuffer(out.image.slice(23)));
+    // Drop the 'data:image/webp;base64' prefix on the image data
+    zip.file(`${out.outPath}.webp`, base64ToArrayBuffer(out.image.slice(23)));
     // zip.file(`${out.outPath}.glb`, out.glb);
   });
 
@@ -356,7 +356,7 @@ document.getElementById("save").onclick = async () => {
 //     id: out.partName,
 //     name: out.name,
 //     src: `${DIST_URL}/${out.outPath}.glb`,
-//     img: `${DIST_URL}/${out.outPath}.jpg`,
+//     img: `${DIST_URL}/${out.outPath}.webp`,
 //     category: out.category,
 //   }));
 //   const catalogBlob = new Blob([JSON.stringify(catalog)], {
