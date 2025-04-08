@@ -13,6 +13,9 @@ const Z_SCALE_FACTOR = 1 / 1.75;
 const LIGHTING_COLOR = 0xffffff;
 const CAMERA_DIST = 3;
 
+// Variable to track the last checked checkbox for shift-click functionality
+let lastCheckedCheckbox = null;
+
 // Create the list of paths
 const tableContainer = document.getElementById("table");
 paths.forEach((path) => {
@@ -22,6 +25,31 @@ paths.forEach((path) => {
   const checkedColumn = document.createElement("td");
   const checkbox = document.createElement("input");
   checkbox.type = "checkbox";
+  
+  // Add shift-click functionality
+  checkbox.addEventListener('click', function(e) {
+    if (e.shiftKey && lastCheckedCheckbox) {
+      // Get all checkboxes
+      const checkboxes = Array.from(document.querySelectorAll('#table input[type="checkbox"]'));
+      
+      // Find the indices of the current and last checked checkboxes
+      const startIdx = checkboxes.indexOf(lastCheckedCheckbox);
+      const endIdx = checkboxes.indexOf(this);
+      
+      // Determine the range to check
+      const start = Math.min(startIdx, endIdx);
+      const end = Math.max(startIdx, endIdx);
+      
+      // Check all checkboxes in the range
+      for (let i = start; i <= end; i++) {
+        checkboxes[i].checked = this.checked;
+      }
+    }
+    
+    // Update the last checked checkbox
+    lastCheckedCheckbox = this;
+  });
+  
   checkedColumn.appendChild(checkbox);
   row.appendChild(checkedColumn);
 
@@ -120,13 +148,59 @@ const generateFromGlbPath = async (path, config) => {
     part.rotation.x = config.rotationX * DEG_TO_RAD;
 
     renderer.render(scene, camera);
-    const image = renderer.domElement.toDataURL("image/jpeg");
+    const image = renderer.domElement.toDataURL(`image/${config.imageFormat}`);
     scene.remove(part);
+    return image;
+  };
+
+  const getWholeGlbImage = (glbScene) => {
+    // Add the entire GLB scene
+    scene.add(glbScene);
+    
+    // Calculate bounding box for the entire GLB
+    const bbox = new THREE.Box3().setFromObject(glbScene);
+    const size = bbox.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z * Z_SCALE_FACTOR);
+    
+    // Scale and position the entire GLB
+    glbScene.scale.set(
+      config.scale / maxDim,
+      config.scale / maxDim,
+      config.scale / maxDim
+    );
+    glbScene.position.set(0, (-config.scale / 2) + Number(config.offsetY), 0);
+    glbScene.rotation.y = config.rotationY * DEG_TO_RAD;
+    glbScene.rotation.x = config.rotationX * DEG_TO_RAD;
+    
+    // Render and get image
+    renderer.render(scene, camera);
+    const image = renderer.domElement.toDataURL(`image/${config.imageFormat}`);
+    
+    // Remove the GLB scene
+    scene.remove(glbScene);
+    
     return image;
   };
 
   const glb = await loader.loadAsync("/" + path);
 
+  // If separateParts is false, create one thumbnail for the whole GLB
+  if (!config.separateParts) {
+    // Create a copy of the scene to avoid modifying the original
+    const glbSceneCopy = glb.scene.clone();
+    const wholeImage = getWholeGlbImage(glbSceneCopy);
+    
+    return [{
+      id: uuidv4(),
+      path: path,
+      partName: "", // Empty partName for the whole model
+      image: wholeImage,
+      // Use the original scene for the GLB
+      glb: await getGlb(glb.scene),
+    }];
+  }
+  
+  // Otherwise create separate thumbnails for each part (original behavior)
   // Why do we need to duplicate this array?
   // Adding a mesh to a scene removes it from its parent scene, resizing the set that glb.scene
   // contains originally. This results in skipping every other part as we iterate through
@@ -136,6 +210,7 @@ const generateFromGlbPath = async (path, config) => {
     parts.push(part);
   });
   console.log(parts);
+  
   return await Promise.all(
     parts.map(async (part) => ({
       id: part.uuid,
@@ -170,17 +245,21 @@ const getFig = (result) => {
   img.setAttribute("path", result.path);
   fig.appendChild(img);
 
-  const partName = document.createElement("div");
-  partName.className = "partName";
-  partName.innerText = result.partName || "unknown";
-  fig.appendChild(partName);
+  // Only add part name if it exists (when separate parts is selected)
+  if (result.partName) {
+    const partName = document.createElement("div");
+    partName.className = "partName";
+    partName.innerText = result.partName;
+    fig.appendChild(partName);
+  }
 
   const exportName = document.createElement("input");
   exportName.type = "text";
   exportName.style = "width: 100%; box-sizing: border-box;";
   const filename = result.path.split("/").at(-1).replace(".glb", "");
-  exportName.value =
-    "default/" + filename + "-" + (result.partName || "unknown");
+  exportName.value = result.partName ? 
+    "default/" + filename + "-" + result.partName : 
+    "default/" + filename;
   fig.appendChild(exportName);
 
   const removeFig = document.createElement("input");
@@ -203,6 +282,8 @@ const generateRow = async (row) => {
     rotationY: document.getElementById("rotationY").value,
     rotationX: document.getElementById("rotationX").value,
     offsetY: document.getElementById("offsetY").value,
+    separateParts: document.getElementById("separateParts").checked,
+    imageFormat: document.getElementById("imageFormat").value,
   };
 
   try {
@@ -298,8 +379,10 @@ document.getElementById("save").onclick = async () => {
   // Download the zip file of assets and thumbnails, and catalog
   const zip = new JSZip();
   output.forEach((out) => {
-    // Drop the 'data:image/jpeg;base64' prefix on the image data
-    zip.file(`${out.outPath}.jpg`, base64ToArrayBuffer(out.image.slice(23)));
+    // Get the image format from the data URL
+    const format = out.image.match(/data:image\/(\w+);base64/)[1];
+    // Drop the 'data:image/FORMAT;base64' prefix on the image data
+    zip.file(`${out.outPath}.${format}`, base64ToArrayBuffer(out.image.split(',')[1]));
     // zip.file(`${out.outPath}.glb`, out.glb);
   });
 
@@ -308,7 +391,7 @@ document.getElementById("save").onclick = async () => {
 //     id: out.partName,
 //     name: out.name,
 //     src: `${DIST_URL}/${out.outPath}.glb`,
-//     img: `${DIST_URL}/${out.outPath}.jpg`,
+//     img: `${DIST_URL}/${out.outPath}.${format}`,
 //     category: out.category,
 //   }));
 //   const catalogBlob = new Blob([JSON.stringify(catalog)], {
