@@ -165,7 +165,7 @@ const generateFromGlbPath = async (path, config) => {
     return [{
       id: uuidv4(),
       path: path,
-      partName: "whole-model",
+      partName: "", // Empty partName for the whole model
       image: wholeImage,
       // Use the original scene for the GLB
       glb: await getGlb(glb.scene),
@@ -226,8 +226,9 @@ const getFig = (result) => {
   exportName.type = "text";
   exportName.style = "width: 100%; box-sizing: border-box;";
   const filename = result.path.split("/").at(-1).replace(".glb", "");
-  exportName.value =
-    "default/" + filename + "-" + (result.partName || "unknown");
+  exportName.value = result.partName ? 
+    "default/" + filename + "-" + result.partName : 
+    "default/" + filename;
   fig.appendChild(exportName);
 
   const removeFig = document.createElement("input");
