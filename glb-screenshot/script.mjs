@@ -120,7 +120,7 @@ const generateFromGlbPath = async (path, config) => {
     part.rotation.x = config.rotationX * DEG_TO_RAD;
 
     renderer.render(scene, camera);
-    const image = renderer.domElement.toDataURL("image/webp");
+    const image = renderer.domElement.toDataURL(`image/${config.imageFormat}`);
     scene.remove(part);
     return image;
   };
@@ -146,7 +146,7 @@ const generateFromGlbPath = async (path, config) => {
     
     // Render and get image
     renderer.render(scene, camera);
-    const image = renderer.domElement.toDataURL("image/webp");
+    const image = renderer.domElement.toDataURL(`image/${config.imageFormat}`);
     
     // Remove the GLB scene
     scene.remove(glbScene);
@@ -251,6 +251,7 @@ const generateRow = async (row) => {
     rotationX: document.getElementById("rotationX").value,
     offsetY: document.getElementById("offsetY").value,
     separateParts: document.getElementById("separateParts").checked,
+    imageFormat: document.getElementById("imageFormat").value,
   };
 
   try {
@@ -346,8 +347,10 @@ document.getElementById("save").onclick = async () => {
   // Download the zip file of assets and thumbnails, and catalog
   const zip = new JSZip();
   output.forEach((out) => {
-    // Drop the 'data:image/webp;base64' prefix on the image data
-    zip.file(`${out.outPath}.webp`, base64ToArrayBuffer(out.image.slice(23)));
+    // Get the image format from the data URL
+    const format = out.image.match(/data:image\/(\w+);base64/)[1];
+    // Drop the 'data:image/FORMAT;base64' prefix on the image data
+    zip.file(`${out.outPath}.${format}`, base64ToArrayBuffer(out.image.split(',')[1]));
     // zip.file(`${out.outPath}.glb`, out.glb);
   });
 
@@ -356,7 +359,7 @@ document.getElementById("save").onclick = async () => {
 //     id: out.partName,
 //     name: out.name,
 //     src: `${DIST_URL}/${out.outPath}.glb`,
-//     img: `${DIST_URL}/${out.outPath}.webp`,
+//     img: `${DIST_URL}/${out.outPath}.${format}`,
 //     category: out.category,
 //   }));
 //   const catalogBlob = new Blob([JSON.stringify(catalog)], {
