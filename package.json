@@ -26,8 +26,7 @@
   },
   "scripts": {
     "dist": "webpack",
-    "dev": "budo src/index.js:dist/citybuilderjr.js --port 7001 --live",
-    "start": "npm run dev",
+    "start": "npm run glb:util",
     "gltf:audit": "node gltf-audit.mjs -i ./src/models",
     "gltf:build": "node gltf-build.mjs -i ./src/models -o ./dist/models -u",
     "gltf:screenshots": "node gltf-screenshots.mjs -i ./dist/models -o ./dist/img -u",
