@@ -16,6 +16,10 @@ The `glb-screenshot` is a simple web app used for generating screenshots part-by
 3. Download the screenshot data.
 4. Find the location of the screenshot data (titled `scene.json`) and write it to the local filesystem with `npm run glb:write <PATH_TO_SCENE_JSON>`. This will write the images to the local filesystem.
 
+# Adding Vertex Colors for Custom Entity Colors
+
+See the [VertexColors.md](docs/VertexColors.md) file for instructions on how to add vertex colors to models for custom entity colors in the 3DStreet application.
+
 # End-User License for Use of 3D Assets
 
 If you wish to use assets from this library, these are made available to users through CC BY-SA 4.0 License.
