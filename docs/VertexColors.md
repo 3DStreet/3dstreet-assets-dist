@@ -26,8 +26,8 @@ Vertex colors are used to allow for user-customized entity colors in the 3DStree
 	 ```
 	 
 
-8. Verify the model locally. The models can be served locally using `serve.py`:
+8. Verify the model locally. The models can be served locally using npm:
 	 ```bash
-	 python serve.py
+	 npm run serve
 	 ```
 	 Then set the `assets` URL in the 3DStreet application to `http://localhost:8000/`. The model should appear with the vertex colors applied.

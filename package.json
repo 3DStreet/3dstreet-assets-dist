@@ -27,6 +27,7 @@
   "scripts": {
     "dist": "webpack",
     "start": "npm run glb:util",
+    "serve": "npx http-server -c-1 --cors --port 8000",
     "gltf:audit": "node gltf-audit.mjs -i ./src/models",
     "gltf:build": "node gltf-build.mjs -i ./src/models -o ./dist/models -u",
     "gltf:screenshots": "node gltf-screenshots.mjs -i ./dist/models -o ./dist/img -u",
@@ -35,6 +36,7 @@
     "glb:write": "node ./glb-screenshot/write-images.mjs -i"
   },
   "devDependencies": {
+    "http-server": "^14.1.1",
     "jszip": "^3.10.1"
   }
 }
