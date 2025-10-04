@@ -5,29 +5,22 @@ The entirety of this repo is available on this subdomain of 3dstreet.app: https:
 
 This repo includes a few different utils for processing glb/gltf files to prepare them for use in 3DStreet.
 
-## Quick thumbnail generation utility
+## Web-based gltf/glb thumbnail generation utility
 
-The simplest utility to use has a web-based interface and allows you to generate thumbnails instantly. To use:
-
+This is the easiest way to create thumbnails for glb files using a browser interface:
 1. Ensure that the prerequisite packages are installed via `npm i`
 2. Start the utility by running `npm start`.
 2. Generate the desired screenshots of the models/parts. (Instructions are included in the web app.)
 3. Download the screenshots.
 
-# List of utilities for glb/gltf processing operations
+## CLI gtlf/glb processing tools
+These command line interface glb processing utilities are separate from the web-based tool, choose whichever works best for your needs. These tools are handy if you want to create and automated pipeline.
 
-There are 2 separate pipelines -- CLI based or web-based. They are separate applications, choose whichever works best for your needs.
-
-## CLI Pipeline
-- `npm run gltf:audit` - Audits GLB/GLTF models in ./src/models for issues and optimization opportunities
+- `npm run gltf:audit` - Audits GLB/GLTF models in ./src/models and generates (or overwrites) a catalog.json file with the results
 - `npm run gltf:build` - Processes and optimizes GLB/GLTF models from ./src/models to ./dist/models (with Draco compression)
 - `npm run gltf:screenshots` - Generates screenshots from processed models in ./dist/models and outputs to ./dist/img
 - `npm run gltf:pipeline` - Runs the complete pipeline: audit, build, and screenshot generation in sequence
 - `npm run gltf:center -- <PATH>` - Optimizes (flattens hierarchy, combines meshes) and centers the origin of GLB/GLTF models on horizontal axes (X/Z) with bottom at ground level (Y=0). Use `-i <path>` for input and optionally `-o <path>` for output. Output files are saved with `-centered` suffix
-
-## Web pipeline
-- `npm run glb:util` - Starts the GLB screenshot utility web app on port 8080 (this is an alternative to the CLI pipeline)
-- `npm run glb:write <PATH_TO_SCENE_JSON>` - Writes screenshot data from the utility to the local filesystem
 
 # End-User License for Use of 3D Assets
 
