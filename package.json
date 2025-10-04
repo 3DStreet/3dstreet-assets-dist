@@ -9,9 +9,6 @@
     "aframe-look-at-component": "^1.0.0",
     "aframe-proxy-event-component": "^2.1.0",
     "aframe-state-component": "^7.1.1",
-    "babel-cli": "^6.26.0",
-    "babel-loader": "^9.1.3",
-    "budo": "^11.8.4",
     "cli-progress": "^3.12.0",
     "draco3dgltf": "^1.5.6",
     "glob": "^10.3.1",
@@ -20,12 +17,9 @@
     "p-limit": "^4.0.0",
     "sharp": "^0.33.5",
     "three": "^0.170.0",
-    "webpack": "^5.88.2",
-    "webpack-cli": "^5.1.4",
     "yargs": "^17.7.2"
   },
   "scripts": {
-    "dist": "webpack",
     "start": "npm run glb:util",
     "gltf:audit": "node gltf-audit.mjs -i ./src/models",
     "gltf:build": "node gltf-build.mjs -i ./src/models -o ./dist/models -u",
